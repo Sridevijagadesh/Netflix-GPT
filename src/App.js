@@ -1,7 +1,12 @@
 import "./App.css";
+import Body from "./Component/Body";
 
 function App() {
-  return <div className="text-3xl text-green">hello netflix gpy</div>;
+  return (
+    <div>
+      <Body />
+    </div>
+  );
 }
 
 export default App;
