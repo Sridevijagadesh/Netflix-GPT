@@ -10,6 +10,11 @@
    -Login
 5. Create FireBase account
 6. Deploy the app in the firebase
+7. created Singup account
+8. Implemented Sign In user API
+9. Created Redux store with userslice
+10. Implemented Sing Out
+11. Update the Profile
 
 # Features
 

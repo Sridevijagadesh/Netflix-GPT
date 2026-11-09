@@ -2,8 +2,18 @@ import React from "react";
 import Header from "./Header";
 import { useState, useRef } from "react";
 import { CheckValidation } from "../Util/Validation.js";
-
+import { auth } from "../Util/Firebase.js";
+import { useDispatch } from "react-redux";
+import { addUser } from "../Util/createslice.js";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+} from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   const [isSignIn, setIsSignIn] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -18,6 +28,72 @@ const Login = () => {
       !isSignIn ? username.current?.value || "" : "validUser",
     );
     setErrorMessage(message);
+    if (message) return;
+
+    if (!isSignIn) {
+      createUserWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value,
+      )
+        .then((userCredential) => {
+          // Signed up
+          const user = userCredential.user;
+
+          updateProfile(user, {
+            displayName: username.current?.value,
+            photoURL:
+              "https://avatars.githubusercontent.com/u/157561190?v=4&size=64",
+          })
+            .then(() => {
+              const { uid, email, displayName, photoURL } = auth.currentUser;
+              dispatch(
+                addUser({
+                  uid: uid,
+                  email: email,
+                  displayName: displayName,
+                  photoURL: photoURL,
+                }),
+              );
+
+              navigate("/browser");
+              // ...
+            })
+            .catch((error) => {
+              setErrorMessage(error.message);
+              // ...
+            });
+          console.log(user);
+
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          // ..
+          setErrorMessage(errorMessage, errorCode);
+        });
+    } else {
+      //sing up logic
+      signInWithEmailAndPassword(
+        auth,
+        email.current.value,
+        password.current.value,
+      )
+        .then((userCredential) => {
+          // Signed in
+          const user = userCredential.user;
+          console.log(user);
+          navigate("/browser");
+
+          // ...
+        })
+        .catch((error) => {
+          const errorCode = error.code;
+          const errorMessage = error.message;
+          setErrorMessage(errorMessage, errorCode);
+        });
+    }
   };
   const HandleEvent = (e) => {
     setIsSignIn(!isSignIn);
@@ -36,11 +112,10 @@ const Login = () => {
         onSubmit={(e) => e.preventDefault()}
         className="absolute text-white  w-3/12 bg-black flex flex-col mx-auto right-0 left-0 top-0 p-12 my-36 bg-opacity-80 rounded-xl"
       >
-        <h1>{!isSignIn ? "Sign In" : "Sign Up"}</h1>
+        <h1>{!isSignIn ? "Sign UP" : "Sign IN"}</h1>
         {!isSignIn && (
           <input
             ref={username}
-            value={username.current?.value || ""}
             placeholder="User Name"
             className="p-4 my-4 w-full bg-gray-900"
           ></input>
@@ -62,7 +137,7 @@ const Login = () => {
           className="p-4 my-4 w-full bg-red bg-red-600 rounded-[40px]"
           onClick={HandleCickevent}
         >
-          {!isSignIn ? "Sign In" : "Sign Up"}
+          {!isSignIn ? "Sign UP" : "Sign IN"}
         </button>
         <p className="cursor-pointer " onClick={HandleEvent}>
           {!isSignIn
